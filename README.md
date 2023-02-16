@@ -1,6 +1,6 @@
 # webtorch
 
-All 21MB of Python in PyTorch shimmed to at least *load* on the web.  Nothing works and the only (broken) function can be found in index.html (`randn`):
+All 21MB of Python in PyTorch shimmed to at least *load* on the web (check out everything in this [file](https://github.com/bwasti/webtorch/blob/main/torch/_C/__init__.py), and these [minimal changes](https://github.com/bwasti/webtorch/blob/main/changes.diff) to the baseline source).  Nothing works and the only (broken) function can be found in index.html (`randn`):
 
 ```javascript
   pyodide.registerJsModule('torch_shim', {
