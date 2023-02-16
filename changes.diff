@@ -1,0 +1,161 @@
+Only in pyonlytorch/torch: _C
+Only in pyonlytorch/torch: _C.py
+diff -r pyonlytorch_base/torch/__init__.py pyonlytorch/torch/__init__.py
+27a28,29
+> elif sys.platform == 'emscripten':
+>     __version__ = "torch-js-0.1"
+165c167
+<     if sys.executable == 'torch_deploy' or platform.system() == 'Windows':
+---
+>     if sys.executable == 'torch_deploy' or platform.system() == 'Windows' or sys.platform == 'emscripten':
+223c225
+< if TYPE_CHECKING:
+---
+> if TYPE_CHECKING or sys.platform == 'emscripten':
+922d923
+< 
+1120c1121
+<     if sys.executable == 'torch_deploy' or platform.system() == 'Windows':
+---
+>     if sys.executable == 'torch_deploy' or platform.system() == 'Windows' or sys.platform == 'emscripten':
+1236,1242c1237,1244
+< import torch.backends.cuda
+< import torch.backends.mps
+< import torch.backends.cudnn
+< import torch.backends.mkl
+< import torch.backends.mkldnn
+< import torch.backends.openmp
+< import torch.backends.quantized
+---
+> if sys.platform != 'emscripten':
+>     import torch.backends.cuda
+>     import torch.backends.mps
+>     import torch.backends.cudnn
+>     import torch.backends.mkl
+>     import torch.backends.mkldnn
+>     import torch.backends.openmp
+>     import torch.backends.quantized
+Only in pyonlytorch/torch: __pycache__
+diff -r pyonlytorch_base/torch/_awaits/__init__.py pyonlytorch/torch/_awaits/__init__.py
+5a6
+> import sys
+11,12c12,17
+< class _PyAwaitMeta(type(torch._C._Await), type(Generic)):  # type: ignore[misc, no-redef]
+<     pass
+---
+> if sys.platform == 'emscripten':
+>     class _PyAwaitMeta(type(Generic)):  # type: ignore[misc, no-redef]
+>         pass
+> else:
+>     class _PyAwaitMeta(type(torch._C._Await), type(Generic)):  # type: ignore[misc, no-redef]
+>         pass
+diff -r pyonlytorch_base/torch/_jit_internal.py pyonlytorch/torch/_jit_internal.py
+40a41
+> from torch._sources import fake_range, get_source_lines_and_file, parse_def
+44d44
+< from torch._sources import fake_range, get_source_lines_and_file, parse_def
+diff -r pyonlytorch_base/torch/autograd/profiler.py pyonlytorch/torch/autograd/profiler.py
+6c6,8
+< import torch.cuda
+---
+> import sys
+> if sys.platform != "emscripten":
+>     import torch.cuda
+diff -r pyonlytorch_base/torch/distributed/__init__.py pyonlytorch/torch/distributed/__init__.py
+16c16
+<     return hasattr(torch._C, "_c10d_init")
+---
+>     return (sys.platform != "emscripten") and hasattr(torch._C, "_c10d_init")
+diff -r pyonlytorch_base/torch/distributed/autograd/__init__.py pyonlytorch/torch/distributed/autograd/__init__.py
+7c7
+<     return hasattr(torch._C, "_dist_autograd_init")
+---
+>     return (sys.platform != "emscripten") and hasattr(torch._C, "_dist_autograd_init")
+diff -r pyonlytorch_base/torch/distributed/rpc/__init__.py pyonlytorch/torch/distributed/rpc/__init__.py
+3a4
+> import sys
+21c22
+<     return hasattr(torch._C, "_rpc_init")
+---
+>     return (sys.platform != "emscripten") and hasattr(torch._C, "_rpc_init")
+diff -r pyonlytorch_base/torch/futures/__init__.py pyonlytorch/torch/futures/__init__.py
+5a6
+> import sys
+12,14c13,18
+< 
+< class _PyFutureMeta(type(torch._C.Future), type(Generic)):  # type: ignore[misc, no-redef]
+<     pass
+---
+> if sys.platform == 'emscripten':
+>     class _PyFutureMeta(type(Generic)):  # type: ignore[misc, no-redef]
+>         pass
+> else:
+>     class _PyFutureMeta(type(torch._C.Future), type(Generic)):  # type: ignore[misc, no-redef]
+>         pass
+diff -r pyonlytorch_base/torch/fx/interpreter.py pyonlytorch/torch/fx/interpreter.py
+8c8
+< import torch.fx.traceback as fx_traceback
+---
+> import torch.fx.traceback
+156c156
+<         with fx_traceback.set_current_meta(node.meta):
+---
+>         with torch.fx.traceback.set_current_meta(node.meta):
+480c480
+<         with fx_traceback.preserve_node_meta():
+---
+>         with torch.fx.traceback.preserve_node_meta():
+diff -r pyonlytorch_base/torch/fx/proxy.py pyonlytorch/torch/fx/proxy.py
+15c15
+< import torch.fx.traceback as fx_traceback
+---
+> import torch.fx.traceback
+164,165c164,165
+<         if fx_traceback.has_preserved_node_meta():
+<             current_meta: Dict[str, Any] = fx_traceback.get_current_meta()
+---
+>         if torch.fx.traceback.has_preserved_node_meta():
+>             current_meta: Dict[str, Any] = torch.fx.traceback.get_current_meta()
+diff -r pyonlytorch_base/torch/multiprocessing/reductions.py pyonlytorch/torch/multiprocessing/reductions.py
+4a5
+> import sys
+380c381,382
+<     ForkingPickler.register(torch.cuda.Event, reduce_event)
+---
+>     if sys.platform != 'emscripten':
+>         ForkingPickler.register(torch.cuda.Event, reduce_event)
+diff -r pyonlytorch_base/torch/multiprocessing/spawn.py pyonlytorch/torch/multiprocessing/spawn.py
+9c9,13
+< from . import _prctl_pr_set_pdeathsig  # type: ignore[attr-defined]
+---
+> if sys.platform == 'emscripten':
+>     def _prctl_pr_set_pdeathsig(arg):
+>         pass
+> else:
+>     from . import _prctl_pr_set_pdeathsig  # type: ignore[attr-defined]
+diff -r pyonlytorch_base/torch/nn/parallel/_functions.py pyonlytorch/torch/nn/parallel/_functions.py
+1a2
+> import sys
+112c113,114
+< _streams: Optional[List[Optional[torch.cuda.Stream]]] = None
+---
+> if sys.platform != 'emscripten':
+>     _streams: Optional[List[Optional[torch.cuda.Stream]]] = None
+diff -r pyonlytorch_base/torch/nn/parallel/comm.py pyonlytorch/torch/nn/parallel/comm.py
+3c3,5
+< from torch.cuda import nccl
+---
+> import sys
+> if sys.platform != 'emscripten':
+>     from torch.cuda import nccl
+diff -r pyonlytorch_base/torch/nn/parallel/parallel_apply.py pyonlytorch/torch/nn/parallel/parallel_apply.py
+3,4c3,8
+< from torch.cuda._utils import _get_device_index
+< from torch.cuda.amp import autocast
+---
+> import sys
+> if sys.platform != 'emscripten':
+>     from torch.cuda._utils import _get_device_index
+>     from torch.cuda.amp import autocast
+> else:
+>     from torch._utils import _get_device_index
