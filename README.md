@@ -10,5 +10,12 @@ All 21MB of Python in PyTorch shimmed to at least *load* on the web.  Nothing wo
   })
 ```
 
+then in the browser:
+
+```python
+import torch
+torch.randn(128, 128)
+```
+
 Theoretically this could be used to shim all the native ops in PyTorch while preserving things like `fx`, `functorch` and full execution of generic scripts in the browser.
-`jit` is almost certainly broken, as well as `cuda` related functionality.
+`jit` would be immensely difficult to shim, as well as `cuda` related functionality.
