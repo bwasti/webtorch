@@ -1,0 +1,22 @@
+_add_metadata_json = None
+_disable_profiler = None
+_disable_profiler_legacy = None
+_enable_profiler = None
+_enable_profiler_legacy = None
+_enable_record_function = None
+_kineto_step = None
+_KinetoEvent = None
+_pop_saved_tensors_default_hooks = None
+_prepare_profiler = None
+_profiler_enabled = None
+_ProfilerResult = None
+_push_saved_tensors_default_hooks = None
+_record_function_with_args_enter = None
+_record_function_with_args_exit = None
+_set_empty_test_observer = None
+_supported_activities = None
+class DeviceType:
+    CPU = None
+kineto_available = None
+ProfilerEvent = None
+SavedTensor = None

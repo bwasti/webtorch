@@ -1,0 +1,48 @@
+<html>
+<head>
+<script src="https://cdn.jsdelivr.net/pyodide/v0.22.1/full/pyodide.js"></script>
+<style>
+html,body {
+font-family: sans-serif;
+color: #110505;
+background: #fefafa;
+}
+</style>
+</head>
+<body>
+<script>
+const python_source = `
+    import torch
+    torch.randn(128,128)
+`
+async function main() {
+  const t0 = performance.now()
+  const pyodide = await loadPyodide()
+  const t1 = performance.now()
+
+  let zipResponse = await fetch("torch.zip");
+  let zipBinary = await zipResponse.arrayBuffer();
+  pyodide.unpackArchive(zipBinary, "zip");
+  await pyodide.loadPackage("typing-extensions")
+  await pyodide.loadPackage("sympy")
+  pyodide.registerJsModule('torch_shim', {
+    js_global_shim: pyodide.toPy({
+      randn: (...args) => { return pyodide.toPy({shape: [...args]}) }
+    })
+  })
+  const output = pyodide.runPython(python_source)
+  const t2 = performance.now()
+  try {
+  document.body.innerHTML =
+    `(Python was downloaded in ${Math.round(t1 - t0)}ms)<br><br>` +
+    `(Python loaded and ran in ${Math.round(t2 - t1)}ms)<br><br>` +
+    `Python:<br><pre>${python_source}</pre><br>` + output
+  } catch(e) {
+  console.log(e)
+  }
+}
+main()
+</script>
+downloading Python...
+</body>
+</html>
